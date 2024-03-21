@@ -36,7 +36,7 @@ android {
 }
 
 dependencies {
-    val ktor_version = "1.6.5"
+    val ktor_version = "2.3.9"
 
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
@@ -51,6 +51,7 @@ dependencies {
 
     implementation ("io.ktor:ktor-client-core:$ktor_version")
     implementation ("io.ktor:ktor-client-json:$ktor_version")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
     implementation ("io.ktor:ktor-client-serialization:$ktor_version")
     implementation ("io.ktor:ktor-client-logging:$ktor_version")
     implementation ("io.ktor:ktor-client-websockets:$ktor_version")

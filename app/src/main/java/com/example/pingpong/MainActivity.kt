@@ -7,24 +7,26 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.core.net.toUri
 import io.ktor.client.HttpClient
-import io.ktor.client.features.websocket.WebSockets
-import io.ktor.client.features.websocket.webSocket
+
+import io.ktor.client.plugins.websocket.WebSockets
+import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.http.HttpMethod
-import io.ktor.http.cio.websocket.Frame
-import io.ktor.http.cio.websocket.readText
+
+import io.ktor.websocket.Frame
+import io.ktor.websocket.readText
 import kotlinx.coroutines.runBlocking
 import org.java_websocket.WebSocket
 import org.java_websocket.client.WebSocketClient
-import org.java_websocket.framing.Framedata
-import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
 
 class MainActivity : AppCompatActivity() {
 
 
-    private lateinit var webSocketClient: WebSocketClient
+    //private lateinit var webSocketClient: WebSocketClient
     private lateinit var buttonPing: Button
     private lateinit var textViewLog: TextView
+    private lateinit var webSocketClient: HttpClient
+
 
     val serverURI = URI("ws://10.0.0.138/ws/dali/devices")
 
@@ -34,6 +36,9 @@ class MainActivity : AppCompatActivity() {
 
         buttonPing = findViewById(R.id.button_ping)
         textViewLog = findViewById(R.id.text_view_log)
+
+
+        /*
 
         // WebSocketClient creation
         webSocketClient = object : WebSocketClient(serverURI) {
@@ -90,9 +95,14 @@ class MainActivity : AppCompatActivity() {
                 textViewLog.append("No connection, ping not send\n")
                 webSocketClient.reconnect()
             }
+                                    send(Frame.Pong(frame.buffer))
+
         }
         // open connection
         webSocketClient.connect()
+
+         */
+        main()
     }
 
     override fun onDestroy() {
@@ -102,13 +112,13 @@ class MainActivity : AppCompatActivity() {
 
 
 
-    fun main() {
-        val client = HttpClient {
+    private fun main() {
+        webSocketClient = HttpClient() {
             install(WebSockets)
         }
 
         runBlocking {
-            client.webSocket(
+            webSocketClient.webSocket(
                 method = HttpMethod.Get,
                 host = "10.0.0.138",
                 port = 80,
@@ -126,6 +136,7 @@ class MainActivity : AppCompatActivity() {
                             runOnUiThread {
                                 textViewLog.append("Ping")
                             }
+
                         }
                         is Frame.Pong -> {
                             runOnUiThread {
