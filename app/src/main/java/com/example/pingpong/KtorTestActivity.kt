@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -28,6 +29,7 @@ import io.ktor.http.headers
 import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.close
+import io.ktor.websocket.readBytes
 import io.ktor.websocket.readText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -35,21 +37,23 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.minutes
 
 class KtorTestActivity : AppCompatActivity() {
 
     private val httpClient: HttpClient by lazy {
-        HttpClient(CIO) {
-            install(WebSockets) {
-                pingInterval = 1.minutes.inWholeMilliseconds
+        HttpClient(OkHttp) {
+            engine {
+                preconfigured = OkHttpClient.Builder()
+                    .pingInterval(10, TimeUnit.SECONDS)
+                    .build()
             }
             install(Logging) {
                 logger = object : Logger {
                     override fun log(message: String) {
                         Log.v("Logger Ktor =>", message)
-                        if (::socket.isInitialized)
-                            textViewLog.append("$message\n")
                     }
 
                 }
@@ -96,53 +100,6 @@ class KtorTestActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-
-    private fun initWebSocket() = lifecycleScope.launch(Dispatchers.IO) {
-        try {
-            httpClient.webSocket(
-                method = HttpMethod.Get,
-                host = "10.0.0.138",
-                port = 80,
-                path = "/ws/dali/devices"
-            ) {
-                headers {
-                    append("username", "atxled")
-                    append("password", "atxled")
-                }
-                while (true) {
-                    when (val frame = incoming.receive()) {
-                        is Frame.Binary -> withContext(Dispatchers.Main) {
-                            textViewLog.append("Binary\n")
-                        }
-
-                        is Frame.Close -> withContext(Dispatchers.Main) {
-                            textViewLog.append("Close\n")
-                        }
-
-                        is Frame.Ping -> withContext(Dispatchers.Main) {
-                            textViewLog.append("Ping\n")
-                        }
-
-                        is Frame.Pong -> withContext(Dispatchers.Main) {
-                            textViewLog.append("Pong\n")
-                        }
-
-                        is Frame.Text -> withContext(Dispatchers.Main) {
-                            textViewLog.append("${frame.readText()}\n")
-                        }
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            withContext(Dispatchers.Main) {
-                textViewLog.append(coloredText("${e.message}\n", Color.RED))
-            }
-            httpClient.close()
-        }
-
-
-    }
-
     private fun coloredText(text: String, color: Int): SpannableString =
         SpannableString(text).apply { setSpan(ForegroundColorSpan(color), 0, text.length, 0) }
 
@@ -169,19 +126,19 @@ class KtorTestActivity : AppCompatActivity() {
                                 }
 
                                 is Frame.Ping -> withContext(Dispatchers.Main) {
-                                    textViewLog.append("Ping($frame)\n")
+                                    textViewLog.append("Ping\n")
                                 }
 
                                 is Frame.Pong -> withContext(Dispatchers.Main) {
-                                    textViewLog.append("Pong($frame)\n")
+                                    textViewLog.append("Pong\n")
                                 }
 
                                 is Frame.Binary -> withContext(Dispatchers.Main) {
-                                    textViewLog.append("Binary($frame)\n")
+                                    textViewLog.append("Binary: ${frame.readBytes()}\n")
                                 }
 
                                 is Frame.Close -> withContext(Dispatchers.Main) {
-                                    textViewLog.append("Close($frame)\n")
+                                    textViewLog.append("Close\n")
                                 }
                             }
                         }
