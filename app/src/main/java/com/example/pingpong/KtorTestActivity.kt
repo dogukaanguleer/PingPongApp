@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class KtorTestActivity : AppCompatActivity() {
 
@@ -63,20 +64,20 @@ class KtorTestActivity : AppCompatActivity() {
                 when (frame) {
                     is Frame.Text -> {
 
-                        runOnUiThread {
+                        withContext(Dispatchers.Main) {
                             textViewLog.append("Received: ${frame.readText()}")
                         }
                     }
 
                     is Frame.Ping -> {
-                        runOnUiThread {
+                        withContext(Dispatchers.Main) {
                             textViewLog.append("Ping")
                         }
 
                     }
 
                     is Frame.Pong -> {
-                        runOnUiThread {
+                        withContext(Dispatchers.Main) {
                             textViewLog.append("Pong")
                         }
                     }
