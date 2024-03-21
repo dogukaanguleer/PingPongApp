@@ -44,12 +44,9 @@ import kotlin.time.Duration.Companion.minutes
 class KtorTestActivity : AppCompatActivity() {
 
     private val httpClient: HttpClient by lazy {
-        HttpClient(OkHttp) {
-            install(WebSockets)
-            engine {
-                preconfigured = OkHttpClient.Builder()
-                    .pingInterval(10, TimeUnit.SECONDS)
-                    .build()
+        HttpClient {
+            install(WebSockets){
+                pingInterval = 1000L
             }
             install(Logging) {
                 logger = object : Logger {
