@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -34,7 +35,7 @@ import kotlinx.coroutines.withContext
 class KtorTestActivity : AppCompatActivity() {
 
     private val httpClient: HttpClient by lazy {
-        HttpClient(Android) {
+        HttpClient(CIO) {
             install(WebSockets) {
                 pingInterval = 10_000
             }
@@ -60,6 +61,7 @@ class KtorTestActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ktor_test)
         //main()
+        textViewLog = findViewById(R.id.text_view_log)
         initWebSocket()
     }
 
