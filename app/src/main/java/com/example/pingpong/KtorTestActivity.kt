@@ -10,24 +10,30 @@ import io.ktor.http.HttpMethod
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
 import kotlinx.coroutines.runBlocking
+import kotlin.time.Duration
 
 class KtorTestActivity : AppCompatActivity() {
 
 
-
+    private lateinit var webSocketClient: HttpClient
     private lateinit var textViewLog: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ktor_test)
-
-
         main()
     }
 
+    override fun onDestroy() {
+        webSocketClient.close()
+        super.onDestroy()
+    }
+
     private fun main() {
-        var webSocketClient = HttpClient() {
-            install(WebSockets)
+        webSocketClient = HttpClient {
+            install(WebSockets) {
+                pingInterval = 5L
+            }
         }
 
         runBlocking {
