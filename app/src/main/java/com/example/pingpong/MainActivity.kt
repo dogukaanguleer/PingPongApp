@@ -6,6 +6,13 @@ import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import androidx.core.net.toUri
+import io.ktor.client.HttpClient
+import io.ktor.client.features.websocket.WebSockets
+import io.ktor.client.features.websocket.webSocket
+import io.ktor.http.HttpMethod
+import io.ktor.http.cio.websocket.Frame
+import io.ktor.http.cio.websocket.readText
+import kotlinx.coroutines.runBlocking
 import org.java_websocket.WebSocket
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.framing.Framedata
@@ -91,5 +98,47 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         webSocketClient.close()
+    }
+
+
+
+    fun main() {
+        val client = HttpClient {
+            install(WebSockets)
+        }
+
+        runBlocking {
+            client.webSocket(
+                method = HttpMethod.Get,
+                host = "10.0.0.138",
+                port = 80,
+                path = "/ws/dali/devices"
+            ) {
+                for (frame in incoming) {
+                    when (frame) {
+                        is Frame.Text -> {
+
+                            runOnUiThread {
+                                textViewLog.append("Received: ${frame.readText()}")
+                            }
+                        }
+                        is Frame.Ping -> {
+                            runOnUiThread {
+                                textViewLog.append("Ping")
+                            }
+                        }
+                        is Frame.Pong -> {
+                            runOnUiThread {
+                                textViewLog.append("Pong")
+                            }
+                        }
+
+                        else -> {
+
+                        }
+                    }
+                }
+            }
+        }
     }
 }
