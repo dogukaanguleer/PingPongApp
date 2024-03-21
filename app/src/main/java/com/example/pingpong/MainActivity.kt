@@ -6,7 +6,9 @@ import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import androidx.core.net.toUri
+import org.java_websocket.WebSocket
 import org.java_websocket.client.WebSocketClient
+import org.java_websocket.framing.Framedata
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
 
@@ -28,6 +30,21 @@ class MainActivity : AppCompatActivity() {
 
         // WebSocketClient creation
         webSocketClient = object : WebSocketClient(serverURI) {
+
+            override fun onWebsocketPing(conn: WebSocket?, f: Framedata?) {
+                super.onWebsocketPing(conn, f)
+                runOnUiThread {
+                    textViewLog.append("Ping\n")
+                }
+            }
+
+            override fun onWebsocketPong(conn: WebSocket?, f: Framedata?) {
+                super.onWebsocketPong(conn, f)
+                runOnUiThread {
+                    textViewLog.append("Pong\n")
+                }
+            }
+
             override fun onOpen(serverHandshake: ServerHandshake) {
                 Log.d("WebSocket", "Connection Open!")
                 runOnUiThread {
@@ -58,15 +75,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Ping button click
+
         buttonPing.setOnClickListener {
             if (webSocketClient.isOpen) {
-                webSocketClient.send("ping")
-                textViewLog.append("Ping send!\n")
+                webSocketClient.sendPing()
             } else {
                 textViewLog.append("No connection, ping not send\n")
+                webSocketClient.reconnect()
             }
         }
-
         // open connection
         webSocketClient.connect()
     }
