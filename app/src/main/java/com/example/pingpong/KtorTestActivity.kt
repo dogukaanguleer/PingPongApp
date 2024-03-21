@@ -112,6 +112,7 @@ class KtorTestActivity : AppCompatActivity() {
             withContext(Dispatchers.Main) {
                 textViewLog.append(e.message)
             }
+            httpClient.close()
         }
     }
 
