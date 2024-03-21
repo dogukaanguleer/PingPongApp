@@ -10,7 +10,7 @@ android {
     defaultConfig {
         applicationId = "com.example.pingpong"
         minSdk = 26
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -38,7 +38,7 @@ android {
 dependencies {
     val ktor_version = "2.3.9"
 
-    implementation("androidx.core:core-ktx:1.9.0")
+    implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
@@ -47,14 +47,15 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
 
-    implementation ("org.java-websocket:Java-WebSocket:1.4.0")
+    implementation("org.java-websocket:Java-WebSocket:1.4.0")
 
-    implementation ("io.ktor:ktor-client-core:$ktor_version")
-    implementation ("io.ktor:ktor-client-json:$ktor_version")
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-android:$ktor_version")
+    implementation("io.ktor:ktor-client-json:$ktor_version")
     implementation("io.ktor:ktor-client-cio:$ktor_version")
-    implementation ("io.ktor:ktor-client-serialization:$ktor_version")
-    implementation ("io.ktor:ktor-client-logging:$ktor_version")
-    implementation ("io.ktor:ktor-client-websockets:$ktor_version")
+    implementation("io.ktor:ktor-client-serialization:$ktor_version")
+    implementation("io.ktor:ktor-client-logging:$ktor_version")
+    implementation("io.ktor:ktor-client-websockets:$ktor_version")
 
 
 }
