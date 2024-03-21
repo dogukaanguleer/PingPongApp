@@ -73,38 +73,44 @@ class KtorTestActivity : AppCompatActivity() {
 
 
     private fun initWebSocket() = lifecycleScope.launch(Dispatchers.IO) {
-        httpClient.webSocket(
-            method = HttpMethod.Get,
-            host = "10.0.0.138",
-            port = 80,
-            path = "/ws/dali/devices"
-        ) {
-            headers {
-                append("username", "atxled")
-                append("password", "atxled")
-            }
-            while (true) {
-                when (val frame = incoming.receive()) {
-                    is Frame.Binary -> withContext(Dispatchers.Main) {
-                        textViewLog.append("Binary")
-                    }
+        try {
+            httpClient.webSocket(
+                method = HttpMethod.Get,
+                host = "10.0.0.138",
+                port = 80,
+                path = "/ws/dali/devices"
+            ) {
+                headers {
+                    append("username", "atxled")
+                    append("password", "atxled")
+                }
+                while (true) {
+                    when (val frame = incoming.receive()) {
+                        is Frame.Binary -> withContext(Dispatchers.Main) {
+                            textViewLog.append("Binary")
+                        }
 
-                    is Frame.Close -> withContext(Dispatchers.Main) {
-                        textViewLog.append("Close")
-                    }
+                        is Frame.Close -> withContext(Dispatchers.Main) {
+                            textViewLog.append("Close")
+                        }
 
-                    is Frame.Ping -> withContext(Dispatchers.Main) {
-                        textViewLog.append("Ping")
-                    }
+                        is Frame.Ping -> withContext(Dispatchers.Main) {
+                            textViewLog.append("Ping")
+                        }
 
-                    is Frame.Pong -> withContext(Dispatchers.Main) {
-                        textViewLog.append("Pong")
-                    }
+                        is Frame.Pong -> withContext(Dispatchers.Main) {
+                            textViewLog.append("Pong")
+                        }
 
-                    is Frame.Text -> withContext(Dispatchers.Main) {
-                        textViewLog.append(frame.readText())
+                        is Frame.Text -> withContext(Dispatchers.Main) {
+                            textViewLog.append(frame.readText())
+                        }
                     }
                 }
+            }
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                textViewLog.append(e.message)
             }
         }
     }
