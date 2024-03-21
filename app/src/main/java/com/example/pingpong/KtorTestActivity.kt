@@ -45,6 +45,7 @@ class KtorTestActivity : AppCompatActivity() {
 
     private val httpClient: HttpClient by lazy {
         HttpClient(OkHttp) {
+            install(WebSockets)
             engine {
                 preconfigured = OkHttpClient.Builder()
                     .pingInterval(10, TimeUnit.SECONDS)
