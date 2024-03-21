@@ -1,20 +1,21 @@
 package com.example.pingpong
 
+import android.graphics.Color
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.android.Android
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.WebSockets
-import io.ktor.client.plugins.websocket.cio.webSocketRawSession
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.plugins.websocket.webSocketSession
 import io.ktor.client.request.header
@@ -34,18 +35,21 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.time.Duration.Companion.minutes
 
 class KtorTestActivity : AppCompatActivity() {
 
     private val httpClient: HttpClient by lazy {
         HttpClient(CIO) {
             install(WebSockets) {
-               // pingInterval = 10_000
+                pingInterval = 1.minutes.inWholeMilliseconds
             }
             install(Logging) {
                 logger = object : Logger {
                     override fun log(message: String) {
                         Log.v("Logger Ktor =>", message)
+                        if (::socket.isInitialized)
+                            textViewLog.append("$message\n")
                     }
 
                 }
@@ -131,19 +135,21 @@ class KtorTestActivity : AppCompatActivity() {
             }
         } catch (e: Exception) {
             withContext(Dispatchers.Main) {
-                textViewLog.append("${e.message}\n")
+                textViewLog.append(coloredText("${e.message}\n", Color.RED))
             }
             httpClient.close()
         }
 
 
-
     }
+
+    private fun coloredText(text: String, color: Int): SpannableString =
+        SpannableString(text).apply { setSpan(ForegroundColorSpan(color), 0, text.length, 0) }
 
     private fun main() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                socket = httpClient.webSocketRawSession() {
+                socket = httpClient.webSocketSession {
                     url("ws://10.0.0.138/ws/dali/devices")
                     headers {
                         append("username", "atxled")
@@ -156,40 +162,42 @@ class KtorTestActivity : AppCompatActivity() {
                     lifecycleScope.launch(Dispatchers.IO) {
                         socket.incoming.consumeAsFlow().collectLatest { frame ->
                             when (frame) {
-                                is Frame.Text -> {
-                                    withContext(Dispatchers.Main) {
-                                        textViewLog.append("Received: ${frame.readText()}\n")
-                                    }
+                                is Frame.Text -> withContext(Dispatchers.Main) {
+                                    textViewLog.append(
+                                        coloredText("Received: ${frame.readText()}\n", Color.BLACK)
+                                    )
                                 }
 
-                                is Frame.Ping -> {
-                                    withContext(Dispatchers.Main) {
-                                        textViewLog.append("Ping\n")
-                                    }
-
+                                is Frame.Ping -> withContext(Dispatchers.Main) {
+                                    textViewLog.append("Ping($frame)\n")
                                 }
 
-                                is Frame.Pong -> {
-                                    withContext(Dispatchers.Main) {
-                                        textViewLog.append("Pong\n")
-                                    }
+                                is Frame.Pong -> withContext(Dispatchers.Main) {
+                                    textViewLog.append("Pong($frame)\n")
                                 }
 
-                                else -> {
+                                is Frame.Binary -> withContext(Dispatchers.Main) {
+                                    textViewLog.append("Binary($frame)\n")
+                                }
 
+                                is Frame.Close -> withContext(Dispatchers.Main) {
+                                    textViewLog.append("Close($frame)\n")
                                 }
                             }
                         }
                     }
+
+                    lifecycleScope.launch(Dispatchers.IO) {
+
+                    }
                 }
-            }catch (e:Exception){
+            } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     textViewLog.append("${e.message}\n")
                 }
                 httpClient.close()
 
             }
-
 
 
         }
