@@ -5,16 +5,6 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
-import androidx.core.net.toUri
-import io.ktor.client.HttpClient
-
-import io.ktor.client.plugins.websocket.WebSockets
-import io.ktor.client.plugins.websocket.webSocket
-import io.ktor.http.HttpMethod
-
-import io.ktor.websocket.Frame
-import io.ktor.websocket.readText
-import kotlinx.coroutines.runBlocking
 import org.java_websocket.WebSocket
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.framing.Framedata
@@ -28,7 +18,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var textViewLog: TextView
 
 
-    val serverURI = URI("ws://10.0.0.138/ws/dali/devices")
+    val serverURI = URI("ws://192.168.1.15:8080")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,7 +78,7 @@ class MainActivity : AppCompatActivity() {
 
         buttonPing.setOnClickListener {
             if (webSocketClient.isOpen) {
-                webSocketClient.sendPing()
+                webSocketClient.send("ONATTTT")
             } else {
                 textViewLog.append("No connection, ping not send\n")
                 webSocketClient.reconnect()

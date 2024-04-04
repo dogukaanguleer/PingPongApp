@@ -44,9 +44,8 @@ import kotlin.time.Duration.Companion.minutes
 class KtorTestActivity : AppCompatActivity() {
 
     private val httpClient: HttpClient by lazy {
-        HttpClient {
+        HttpClient(CIO) {
             install(WebSockets){
-                pingInterval = 1000L
             }
             install(Logging) {
                 logger = object : Logger {
@@ -74,11 +73,9 @@ class KtorTestActivity : AppCompatActivity() {
         textViewLog = findViewById(R.id.text_view_log)
         buttonPing = findViewById(R.id.button_ping)
 
-        main()
-
-        //initWebSocket()
 
 
+        /*
         buttonPing.setOnClickListener {
 
             lifecycleScope.launch {
@@ -86,77 +83,62 @@ class KtorTestActivity : AppCompatActivity() {
                 if (::socket.isInitialized && socket.isActive)
                     socket.send(Frame.Ping(byteArrayOf()))
             }
-
         }
+         */
+
+        initWebSocket()
     }
 
-    override fun onDestroy() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            socket.close()
-            httpClient.close()
-        }
-        super.onDestroy()
-    }
-
-    private fun coloredText(text: String, color: Int): SpannableString =
-        SpannableString(text).apply { setSpan(ForegroundColorSpan(color), 0, text.length, 0) }
-
-    private fun main() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                socket = httpClient.webSocketSession {
-                    url("ws://10.0.0.138/ws/dali/devices")
-                    headers {
-                        append("username", "atxled")
-                        append("password", "atxled")
+    private fun initWebSocket() = lifecycleScope.launch(Dispatchers.IO) {
+        try {
+            httpClient.webSocket(
+                method = HttpMethod.Get,
+                host = "10.0.0.138",
+                port = 80,
+                path = "/ws/dali/devices"
+            ) {
+                headers {
+                    append("username", "atxled")
+                    append("password", "atxled")
+                }
+                buttonPing.setOnClickListener {
+                    lifecycleScope.launch {
+                            send(Frame.Text("testt by cratus"))
                     }
                 }
-                if (socket.isActive) withContext(Dispatchers.Main) {
-                    textViewLog.append("Connected\n")
 
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        socket.incoming.consumeAsFlow().collectLatest { frame ->
-                            when (frame) {
-                                is Frame.Text -> withContext(Dispatchers.Main) {
-                                    textViewLog.append(
-                                        coloredText("Received: ${frame.readText()}\n", Color.BLACK)
-                                    )
-                                }
+                while (true) {
+                    when (val frame = incoming.receive()) {
+                        is Frame.Binary -> withContext(Dispatchers.Main) {
+                            textViewLog.append("Binary\n")
+                        }
 
-                                is Frame.Ping -> withContext(Dispatchers.Main) {
-                                    textViewLog.append("Ping\n")
-                                }
+                        is Frame.Close -> withContext(Dispatchers.Main) {
+                            textViewLog.append("Close\n")
+                        }
 
-                                is Frame.Pong -> withContext(Dispatchers.Main) {
-                                    textViewLog.append("Pong\n")
-                                }
+                        is Frame.Ping -> withContext(Dispatchers.Main) {
+                            textViewLog.append("Ping\n")
+                        }
 
-                                is Frame.Binary -> withContext(Dispatchers.Main) {
-                                    textViewLog.append("Binary: ${frame.readBytes()}\n")
-                                }
+                        is Frame.Pong -> withContext(Dispatchers.Main) {
+                            textViewLog.append("Pong\n")
+                        }
 
-                                is Frame.Close -> withContext(Dispatchers.Main) {
-                                    textViewLog.append("Close\n")
-                                }
-                            }
+                        is Frame.Text -> withContext(Dispatchers.Main) {
+                            textViewLog.append("${frame.readText()}\n")
                         }
                     }
-
-                    lifecycleScope.launch(Dispatchers.IO) {
-
-                    }
                 }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    textViewLog.append("${e.message}\n")
-                }
-                httpClient.close()
-
             }
-
-
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                textViewLog.append("${e.message}\n")
+            }
+            httpClient.close()
         }
 
 
     }
+
 }

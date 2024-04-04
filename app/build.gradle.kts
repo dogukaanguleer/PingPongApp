@@ -57,6 +57,7 @@ dependencies {
     implementation("io.ktor:ktor-client-serialization:$ktor_version")
     implementation("io.ktor:ktor-client-logging:$ktor_version")
     implementation("io.ktor:ktor-client-websockets:$ktor_version")
+    implementation("io.ktor:ktor-server-websockets:$ktor_version")
 
 
 }
