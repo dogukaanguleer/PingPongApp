@@ -36,6 +36,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
     val ktor_version = "2.3.9"
 
     implementation("androidx.core:core-ktx:1.12.0")

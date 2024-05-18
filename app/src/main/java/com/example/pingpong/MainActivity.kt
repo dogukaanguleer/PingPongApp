@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var textViewLog: TextView
 
 
-    val serverURI = URI("ws://192.168.1.15:8080")
+    val serverURI = URI("ws://192.168.1.34:8080/")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,7 +78,7 @@ class MainActivity : AppCompatActivity() {
 
         buttonPing.setOnClickListener {
             if (webSocketClient.isOpen) {
-                webSocketClient.send("ONATTTT")
+                webSocketClient.sendPing()
             } else {
                 textViewLog.append("No connection, ping not send\n")
                 webSocketClient.reconnect()

@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">PingPong</string>
+    <string name="notification_channel_id">1872981</string>
+    <string name="notification_title">Websocket\n</string>
+    <string name="cancel_download">Cancel</string>
+    <string name="channel_name">CRIB Notifications</string>
+    <string name="channel_description">This channel provides notifications for Websocket and other long running tasks.</string>
 </resources>
